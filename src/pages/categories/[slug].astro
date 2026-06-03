@@ -1,0 +1,162 @@
+---
+import Base from '../../layouts/Base.astro'
+import Nav from '../../components/Nav.astro'
+import GameCard from '../../components/GameCard.astro'
+import Footer from '../../components/Footer.astro'
+import { sanityClient } from '../../lib/sanity'
+import { urlFor } from '../../lib/sanityImage'
+
+export async function getStaticPaths() {
+  const categories = await sanityClient.fetch(`
+    *[_type == "category"] { "slug": slug.current }
+  `)
+  return categories.map((c: { slug: string }) => ({ params: { slug: c.slug } }))
+}
+
+const { slug } = Astro.params
+
+const [category, games] = await Promise.all([
+  sanityClient.fetch(`
+    *[_type == "category" && slug.current == $slug][0] {
+      name, slug, description
+    }
+  `, { slug }),
+  sanityClient.fetch(`
+    *[_type == "game" && category->slug.current == $slug] | order(rating desc) {
+      name, slug, tagline, rating, shortReview, affiliateUrl, logo,
+      category->{ name, slug }
+    }
+  `, { slug }),
+])
+
+if (!category) {
+  return Astro.redirect('/404')
+}
+
+const gamesWithLogos = games.map((g: any) => ({
+  ...g,
+  logoUrl: g.logo ? urlFor(g.logo).width(112).height(112).fit('crop').auto('format').url() : undefined,
+}))
+---
+<Base
+  title={`${category.name} Games — MobileGameRadar`}
+  description={category.description ?? `Reviews and rankings of the best ${category.name} mobile games.`}
+>
+  <Nav />
+
+  <main>
+    <section class="cat-hero">
+      <div class="container cat-hero__inner">
+        <a href="/#categories" class="cat-hero__back eyebrow">← All Categories</a>
+        <p class="eyebrow cat-hero__eyebrow">Category</p>
+        <h1 class="cat-hero__name">{category.name}</h1>
+        {category.description && (
+          <p class="cat-hero__desc">{category.description}</p>
+        )}
+        <p class="cat-hero__count eyebrow">
+          {gamesWithLogos.length} {gamesWithLogos.length === 1 ? 'game' : 'games'} reviewed
+        </p>
+      </div>
+    </section>
+
+    <section class="cat-games" aria-labelledby="cat-games-heading">
+      <div class="container">
+        <h2 id="cat-games-heading" class="sr-only">Games in {category.name}</h2>
+        {gamesWithLogos.length === 0 ? (
+          <p class="cat-games__empty">No games reviewed in this category yet — check back soon.</p>
+        ) : (
+          <ul class="cat-grid" role="list">
+            {gamesWithLogos.map((game: any, i: number) => (
+              <li class="reveal" style={`transition-delay: ${i * 60}ms`}>
+                <GameCard
+                  name={game.name}
+                  slug={game.slug.current}
+                  tagline={game.tagline}
+                  rating={game.rating}
+                  shortReview={game.shortReview}
+                  affiliateUrl={game.affiliateUrl}
+                  logoUrl={game.logoUrl}
+                  category={{ name: game.category.name, slug: game.category.slug.current }}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .cat-hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .cat-hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 680px;
+  }
+
+  .cat-hero__back {
+    margin-bottom: 0.5rem;
+    transition: color 0.15s;
+  }
+  .cat-hero__back:hover { color: var(--accent); }
+
+  .cat-hero__eyebrow { color: var(--accent); }
+
+  .cat-hero__name {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  .cat-hero__desc {
+    font-size: 1.0625rem;
+    color: var(--ink-secondary);
+    line-height: 1.65;
+    max-width: 560px;
+    margin-top: 0.25rem;
+  }
+
+  .cat-hero__count {
+    margin-top: 0.5rem;
+  }
+
+  .cat-games {
+    padding-block: clamp(3rem, 7vw, 5rem);
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 1.25rem;
+  }
+
+  .cat-games__empty {
+    color: var(--ink-secondary);
+    font-size: 0.9375rem;
+    padding: 3rem 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

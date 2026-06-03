@@ -1,0 +1,199 @@
+---
+interface Props {
+  name: string
+  tagline?: string
+  rating?: number
+  shortReview?: string
+  affiliateUrl: string
+  logoUrl?: string
+  slug: string
+  category?: { name: string; slug: string }
+}
+const { name, slug, tagline, rating, shortReview, affiliateUrl, logoUrl, category } = Astro.props
+
+const ratingDisplay = rating ? rating.toFixed(1) : null
+---
+<article class="card">
+  <div class="card__top">
+    <a href={`/games/${slug}`} class="card__logo-wrap" aria-label={`View ${name}`}>
+      {logoUrl
+        ? <img class="card__logo" src={logoUrl} alt={`${name} logo`} loading="lazy" width="56" height="56" />
+        : <div class="card__logo-placeholder" aria-hidden="true">{name[0]}</div>
+      }
+    </a>
+    {category && (
+      <span class="card__category eyebrow">{category.name}</span>
+    )}
+  </div>
+
+  <div class="card__body">
+    <h3 class="card__name"><a href={`/games/${slug}`} class="card__name-link">{name}</a></h3>
+    {tagline && <p class="card__tagline">{tagline}</p>}
+    {shortReview && <p class="card__review">{shortReview}</p>}
+  </div>
+
+  <div class="card__footer">
+    {ratingDisplay && (
+      <div class="card__rating" aria-label={`Rating: ${ratingDisplay} out of 10`}>
+        <span class="card__rating-value">{ratingDisplay}</span>
+        <span class="card__rating-label">/10</span>
+      </div>
+    )}
+    <a
+      href={affiliateUrl}
+      target="_blank"
+      rel="sponsored noopener"
+      class="card__cta"
+      aria-label={`Play ${name}`}
+    >
+      Play Now
+    </a>
+  </div>
+</article>
+
+<style>
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+    border-color: var(--border-hover);
+  }
+
+  .card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .card__logo-wrap {
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .card__logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .card__logo-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card__category {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .card__name {
+    font-family: var(--font-display);
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .card__name-link {
+    transition: color 0.15s ease;
+  }
+
+  .card__name-link:hover {
+    color: var(--accent);
+  }
+
+  .card__tagline {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-secondary);
+  }
+
+  .card__review {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin-top: 0.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .card__rating {
+    display: flex;
+    align-items: baseline;
+    gap: 0.125rem;
+  }
+
+  .card__rating-value {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+  }
+
+  .card__rating-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-muted);
+  }
+
+  .card__cta {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .card__cta:hover {
+    background: var(--accent);
+    color: white;
+  }
+</style>

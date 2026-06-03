@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro'
+import Nav from '../components/Nav.astro'
+import Footer from '../components/Footer.astro'
+import { sanityClient } from '../lib/sanity'
+import { toHTML } from '@portabletext/to-html'
+
+export async function getStaticPaths() {
+  const pages = await sanityClient.fetch(`
+    *[_type == "page"] { "slug": slug.current }
+  `)
+  return pages.map((p: { slug: string }) => ({ params: { slug: p.slug } }))
+}
+
+const { slug } = Astro.params
+
+const page = await sanityClient.fetch(`
+  *[_type == "page" && slug.current == $slug][0] {
+    title, slug, body, seoDescription
+  }
+`, { slug })
+
+if (!page) {
+  return Astro.redirect('/404')
+}
+
+const bodyHtml = page.body ? toHTML(page.body, { onMissingComponent: false }) : null
+---
+<Base
+  title={`${page.title} — MobileGameRadar`}
+  description={page.seoDescription ?? undefined}
+>
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container page-hero__inner">
+        <h1 class="page-hero__title">{page.title}</h1>
+      </div>
+    </section>
+
+    {bodyHtml && (
+      <div class="container page-body">
+        <div class="prose" set:html={bodyHtml} />
+      </div>
+    )}
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .page-hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .page-hero__inner {
+    max-width: 720px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  .page-body {
+    padding-block: clamp(2.5rem, 6vw, 5rem);
+    max-width: 720px;
+  }
+
+  .prose {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--ink);
+  }
+
+  .prose :global(h2),
+  .prose :global(h3) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .prose :global(h2) { font-size: 1.5rem; }
+  .prose :global(h3) { font-size: 1.1875rem; }
+
+  .prose :global(p) { margin-bottom: 1rem; }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose :global(ul) { list-style: disc; }
+  .prose :global(ol) { list-style: decimal; }
+
+  .prose :global(li) { margin-bottom: 0.4rem; }
+
+  .prose :global(strong) { font-weight: 600; }
+  .prose :global(em) { font-style: italic; }
+
+  .prose :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

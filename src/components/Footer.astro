@@ -1,0 +1,161 @@
+---
+interface Props {
+  footerText?: string
+}
+const { footerText } = Astro.props
+const year = new Date().getFullYear()
+---
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <a href="/" class="footer__logo" aria-label="MobileGameRadar home">
+        <span class="footer__logo-mark">MGR</span>
+        <span class="footer__logo-name">MobileGameRadar</span>
+      </a>
+      {footerText && <p class="footer__tagline">{footerText}</p>}
+    </div>
+
+    <nav class="footer__nav" aria-label="Footer navigation">
+      <div class="footer__nav-group">
+        <p class="footer__nav-label eyebrow">Explore</p>
+        <ul>
+          <li><a href="/#featured" class="footer__link">Top Games</a></li>
+          <li><a href="/#categories" class="footer__link">Categories</a></li>
+          <li><a href="/" class="footer__link">All Reviews</a></li>
+        </ul>
+      </div>
+      <div class="footer__nav-group">
+        <p class="footer__nav-label eyebrow">Site</p>
+        <ul>
+          <li><a href="/about" class="footer__link">About</a></li>
+          <li><a href="/advertise" class="footer__link">Advertise</a></li>
+          <li><a href="/contact" class="footer__link">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="container footer__bottom">
+    <p class="footer__copy">
+      &copy; {year} MobileGameRadar. All rights reserved.
+    </p>
+    <p class="footer__disclosure">
+      This site contains affiliate links. We may earn a commission when you click through and sign up.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--ink);
+    color: var(--surface);
+    padding-top: clamp(3rem, 6vw, 5rem);
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .footer__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 320px;
+  }
+
+  .footer__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer__logo-mark {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--accent-light);
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  .footer__logo-name {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--surface);
+    letter-spacing: -0.02em;
+  }
+
+  .footer__tagline {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+
+  .footer__nav {
+    display: flex;
+    gap: 3rem;
+  }
+
+  .footer__nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .footer__nav-group ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer__nav-label {
+    color: rgba(255,255,255,0.35);
+  }
+
+  .footer__link {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.6);
+    transition: color 0.15s ease;
+  }
+
+  .footer__link:hover {
+    color: var(--surface);
+  }
+
+  .footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .footer__copy {
+    font-size: 0.8125rem;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .footer__disclosure {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.25);
+    max-width: 440px;
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+    }
+    .footer__disclosure {
+      text-align: left;
+    }
+  }
+</style>

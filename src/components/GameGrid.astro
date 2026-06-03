@@ -1,0 +1,91 @@
+---
+import GameCard from './GameCard.astro'
+
+interface Game {
+  name: string
+  slug: { current: string }
+  tagline?: string
+  rating?: number
+  shortReview?: string
+  affiliateUrl: string
+  logoUrl?: string
+  category?: { name: string; slug: { current: string } }
+}
+
+interface Props {
+  games: Game[]
+}
+const { games } = Astro.props
+---
+<section class="grid-section" id="featured" aria-labelledby="featured-heading">
+  <div class="container">
+    <div class="grid-section__header reveal">
+      <p class="eyebrow">01 — Featured</p>
+      <h2 id="featured-heading" class="grid-section__title">
+        Top-rated games<br /><em>worth your time</em>
+      </h2>
+    </div>
+
+    {games.length === 0 ? (
+      <p class="grid-section__empty">No featured games yet — check back soon.</p>
+    ) : (
+      <ul class="game-grid" role="list">
+        {games.map((game, i) => (
+          <li class="reveal" style={`transition-delay: ${i * 60}ms`}>
+            <GameCard
+              name={game.name}
+              slug={game.slug.current}
+              tagline={game.tagline}
+              rating={game.rating}
+              shortReview={game.shortReview}
+              affiliateUrl={game.affiliateUrl}
+              logoUrl={game.logoUrl}
+              category={game.category ? { name: game.category.name, slug: game.category.slug.current } : undefined}
+            />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</section>
+
+<style>
+  .grid-section {
+    padding-block: clamp(3.5rem, 8vw, 6rem);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .grid-section__header {
+    margin-bottom: 2.5rem;
+  }
+
+  .eyebrow {
+    margin-bottom: 0.75rem;
+  }
+
+  .grid-section__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  .grid-section__title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 1.25rem;
+  }
+
+  .grid-section__empty {
+    color: var(--ink-secondary);
+    font-size: 0.9375rem;
+    padding: 3rem 0;
+  }
+</style>

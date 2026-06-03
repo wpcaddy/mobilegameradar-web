@@ -1,17 +1,52 @@
 ---
+import Base from '../layouts/Base.astro'
+import Nav from '../components/Nav.astro'
+import Hero from '../components/Hero.astro'
+import GameGrid from '../components/GameGrid.astro'
+import CategoryList from '../components/CategoryList.astro'
+import Footer from '../components/Footer.astro'
+import { sanityClient } from '../lib/sanity'
+import { urlFor } from '../lib/sanityImage'
 
+const [settings, featuredGames, categories] = await Promise.all([
+  sanityClient.fetch(`*[_type == "siteSettings"][0]`),
+  sanityClient.fetch(`
+    *[_type == "game" && featured == true] | order(rating desc) {
+      name,
+      slug,
+      tagline,
+      rating,
+      shortReview,
+      affiliateUrl,
+      logo,
+      category->{ name, slug }
+    }
+  `),
+  sanityClient.fetch(`
+    *[_type == "category"] | order(name asc) {
+      name,
+      slug,
+      description
+    }
+  `),
+])
+
+// Resolve logo URLs via @sanity/image-url (respects hotspot/crop)
+const games = featuredGames.map((g: any) => ({
+  ...g,
+  logoUrl: g.logo ? urlFor(g.logo).width(112).height(112).fit('crop').auto('format').url() : undefined,
+}))
+
+const headline = settings?.heroHeadline ?? 'Skill-based games <em>that actually pay</em>'
+const subhead = settings?.heroSubhead ?? 'We review and rank the top mobile games where your skill earns real cash rewards.'
+const footerText = settings?.footerText
 ---
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title={settings?.siteName ? `${settings.siteName} — Skill-Based Cash Game Reviews` : undefined}>
+  <Nav />
+  <main>
+    <Hero headline={headline} subhead={subhead} />
+    <GameGrid games={games} />
+    <CategoryList categories={categories} />
+  </main>
+  <Footer footerText={footerText} />
+</Base>
