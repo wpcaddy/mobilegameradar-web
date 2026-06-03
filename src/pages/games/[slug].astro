@@ -31,6 +31,7 @@ const game = await sanityClient.fetch(`
     screenshots[] { asset-> },
     pros,
     cons,
+    availableStates,
     payoutMethod,
     platforms,
     publishedAt,
@@ -178,6 +179,14 @@ const jsonLd = {
               </ul>
             </div>
           )}
+        </section>
+      )}
+
+      <!-- Available States -->
+      {game.availableStates && (
+        <section class="available-states reveal" aria-labelledby="states-heading">
+          <p class="eyebrow">Available States</p>
+          <p class="available-states__list">{game.availableStates}</p>
         </section>
       )}
 
@@ -500,6 +509,21 @@ const jsonLd = {
 
   @media (max-width: 540px) {
     .proscons { grid-template-columns: 1fr; }
+  }
+
+  /* ── Available States ── */
+  .available-states {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .available-states__list {
+    font-size: 0.9375rem;
+    color: var(--ink);
+    line-height: 1.7;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
   }
 
   /* ── Screenshots ── */
