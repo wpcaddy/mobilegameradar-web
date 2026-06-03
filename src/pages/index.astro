@@ -41,7 +41,11 @@ const headline = settings?.heroHeadline ?? 'Skill-based games <em>that actually 
 const subhead = settings?.heroSubhead ?? 'We review and rank the top mobile games where your skill earns real cash rewards.'
 const footerText = settings?.footerText
 ---
-<Base title={settings?.siteName ? `${settings.siteName} — Skill-Based Cash Game Reviews` : undefined}>
+<Base
+  title={settings?.siteName ? `${settings.siteName} — Skill-Based Cash Game Reviews` : undefined}
+  description={settings?.heroSubhead ?? 'Expert reviews and rankings of the top mobile games where you can win real cash.'}
+  canonical="https://mobilegameradar.com/"
+>
   <Nav />
   <main>
     <Hero headline={headline} subhead={subhead} />

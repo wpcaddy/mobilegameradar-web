@@ -28,6 +28,7 @@ const bodyHtml = page.body ? toHTML(page.body, { onMissingComponent: false }) : 
 ---
 <Base
   title={`${page.title} — MobileGameRadar`}
+  canonical={`https://mobilegameradar.com/${page.slug.current}`}
   description={page.seoDescription ?? undefined}
 >
   <Nav />

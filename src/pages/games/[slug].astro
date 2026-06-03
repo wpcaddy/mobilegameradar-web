@@ -25,6 +25,9 @@ const game = await sanityClient.fetch(`
     fullReview,
     affiliateUrl,
     logo,
+    seoTitle,
+    seoDescription,
+    seoImage,
     screenshots[] { asset-> },
     pros,
     cons,
@@ -53,10 +56,44 @@ const fullReviewHtml = game.fullReview
 
 const ratingDisplay = game.rating ? game.rating.toFixed(1) : null
 const ratingPercent = game.rating ? (game.rating / 10) * 100 : 0
+
+// SEO
+const seoTitle = game.seoTitle ?? `${game.name} Review — MobileGameRadar`
+const seoDescription = game.seoDescription ?? game.shortReview ?? `Our full review of ${game.name}.`
+
+const ogImageUrl = game.seoImage
+  ? urlFor(game.seoImage).width(1200).height(630).fit('crop').auto('format').url()
+  : logoUrl
+    ? urlFor(game.logo).width(1200).height(630).fit('crop').auto('format').url()
+    : undefined
+
+// JSON-LD: MobileApplication + Review
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MobileApplication',
+  name: game.name,
+  description: seoDescription,
+  operatingSystem: game.platforms?.join(', ') ?? undefined,
+  applicationCategory: 'GameApplication',
+  ...(game.rating && {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: game.rating,
+      bestRating: 10,
+      worstRating: 0,
+      ratingCount: 1,
+    },
+  }),
+  ...(game.affiliateUrl && { url: game.affiliateUrl }),
+  ...(logoUrl && { image: logoUrl }),
+}
 ---
 <Base
-  title={`${game.name} Review — MobileGameRadar`}
-  description={game.shortReview ?? `Our full review of ${game.name}.`}
+  title={seoTitle}
+  description={seoDescription}
+  ogImage={ogImageUrl}
+  ogType="article"
+  jsonLd={jsonLd}
 >
   <Nav />
 

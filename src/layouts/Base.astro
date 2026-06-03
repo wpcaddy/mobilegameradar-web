@@ -2,11 +2,21 @@
 interface Props {
   title?: string
   description?: string
+  ogImage?: string
+  ogType?: 'website' | 'article'
+  canonical?: string
+  jsonLd?: Record<string, unknown>
 }
 const {
   title = 'MobileGameRadar — Find the Best Skill-Based Cash Games',
   description = 'Expert reviews and rankings of the top mobile games where you can win real cash.',
+  ogImage = 'https://mobilegameradar.com/og-default.png',
+  ogType = 'website',
+  canonical,
+  jsonLd,
 } = Astro.props
+
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, 'https://mobilegameradar.com').toString()
 ---
 <!doctype html>
 <html lang="en">
@@ -15,14 +25,33 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="MobileGameRadar" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- JSON-LD structured data -->
+    {jsonLd && (
+      <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    )}
   </head>
   <body>
     <slot />
     <script>
-      // Scroll reveal
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((e) => {
