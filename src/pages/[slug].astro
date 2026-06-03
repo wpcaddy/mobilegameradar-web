@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro'
 import Nav from '../components/Nav.astro'
 import Footer from '../components/Footer.astro'
 import { sanityClient } from '../lib/sanity'
+import { urlFor } from '../lib/sanityImage'
 import { toHTML } from '@portabletext/to-html'
 
 export async function getStaticPaths() {
@@ -16,7 +17,7 @@ const { slug } = Astro.params
 
 const page = await sanityClient.fetch(`
   *[_type == "page" && slug.current == $slug][0] {
-    title, slug, body, seoDescription
+    title, slug, body, seoTitle, seoDescription, seoImage
   }
 `, { slug })
 
@@ -25,11 +26,17 @@ if (!page) {
 }
 
 const bodyHtml = page.body ? toHTML(page.body, { onMissingComponent: false }) : null
+
+const pageSeoTitle = page.seoTitle ?? `${page.title} — MobileGameRadar`
+const pageOgImage = page.seoImage
+  ? urlFor(page.seoImage).width(1200).height(630).fit('crop').auto('format').url()
+  : undefined
 ---
 <Base
-  title={`${page.title} — MobileGameRadar`}
-  canonical={`https://mobilegameradar.com/${page.slug.current}`}
+  title={pageSeoTitle}
   description={page.seoDescription ?? undefined}
+  ogImage={pageOgImage}
+  canonical={`https://mobilegameradar.com/${page.slug.current}`}
 >
   <Nav />
   <main>

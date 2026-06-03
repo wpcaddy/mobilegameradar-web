@@ -18,7 +18,7 @@ const { slug } = Astro.params
 const [category, games] = await Promise.all([
   sanityClient.fetch(`
     *[_type == "category" && slug.current == $slug][0] {
-      name, slug, description
+      name, slug, description, seoTitle, seoDescription, seoImage
     }
   `, { slug }),
   sanityClient.fetch(`
@@ -33,14 +33,21 @@ if (!category) {
   return Astro.redirect('/404')
 }
 
+const catSeoTitle = category.seoTitle ?? `${category.name} Games — MobileGameRadar`
+const catSeoDescription = category.seoDescription ?? category.description ?? `Reviews and rankings of the best ${category.name} mobile games.`
+const catOgImage = category.seoImage
+  ? urlFor(category.seoImage).width(1200).height(630).fit('crop').auto('format').url()
+  : undefined
+
 const gamesWithLogos = games.map((g: any) => ({
   ...g,
   logoUrl: g.logo ? urlFor(g.logo).width(112).height(112).fit('crop').auto('format').url() : undefined,
 }))
 ---
 <Base
-  title={`${category.name} Games — MobileGameRadar`}
-  description={category.description ?? `Reviews and rankings of the best ${category.name} mobile games.`}
+  title={catSeoTitle}
+  description={catSeoDescription}
+  ogImage={catOgImage}
   canonical={`https://mobilegameradar.com/categories/${category.slug.current}`}
 >
   <Nav />
