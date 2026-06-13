@@ -2,40 +2,48 @@
 import Base from '../layouts/Base.astro'
 import Nav from '../components/Nav.astro'
 import Hero from '../components/Hero.astro'
-import GameGrid from '../components/GameGrid.astro'
-import CategoryList from '../components/CategoryList.astro'
+import CategoryRow from '../components/CategoryRow.astro'
 import Footer from '../components/Footer.astro'
 import { sanityClient } from '../lib/sanity'
 import { urlFor } from '../lib/sanityImage'
 
-const [settings, featuredGames, categories] = await Promise.all([
+const [settings, categoriesRaw, logoGames] = await Promise.all([
   sanityClient.fetch(`*[_type == "siteSettings"][0]`),
-  sanityClient.fetch(`
-    *[_type == "game" && featured == true] | order(rating desc) {
-      name,
-      slug,
-      tagline,
-      rating,
-      shortReview,
-      affiliateUrl,
-      logo,
-      category->{ name, slug }
-    }
-  `),
   sanityClient.fetch(`
     *[_type == "category"] | order(name asc) {
       name,
       slug,
-      description
+      description,
+      "games": *[_type == "game" && references(^._id)] | order(rating desc)[0...10] {
+        name,
+        slug,
+        tagline,
+        rating,
+        affiliateUrl,
+        logo
+      }
+    }
+  `),
+  sanityClient.fetch(`
+    *[_type == "game" && defined(logo)] | order(rating desc)[0...30] {
+      name,
+      "logoUrl": logo.asset->url
     }
   `),
 ])
 
-// Resolve logo URLs via @sanity/image-url (respects hotspot/crop)
-const games = featuredGames.map((g: any) => ({
-  ...g,
-  logoUrl: g.logo ? urlFor(g.logo).width(112).height(112).fit('crop').auto('format').url() : undefined,
-}))
+// Resolve logos for category row cards
+const categories = categoriesRaw
+  .filter((c: any) => c.games && c.games.length > 0)
+  .map((c: any) => ({
+    ...c,
+    games: c.games.map((g: any) => ({
+      ...g,
+      logoUrl: g.logo
+        ? urlFor(g.logo).width(96).height(96).fit('crop').auto('format').url()
+        : undefined,
+    })),
+  }))
 
 const headline = settings?.heroHeadline ?? 'Skill-based games <em>that actually pay</em>'
 const subhead = settings?.heroSubhead ?? 'We review and rank the top mobile games where your skill earns real cash rewards.'
@@ -48,9 +56,24 @@ const footerText = settings?.footerText
 >
   <Nav />
   <main>
-    <Hero headline={headline} subhead={subhead} />
-    <GameGrid games={games} />
-    <CategoryList categories={categories} />
+    <Hero
+      headline={headline}
+      subhead={subhead}
+      logoTiles={logoGames}
+      gameCount={logoGames.length > 0 ? 114 : 0}
+      categoryCount={categories.length}
+    />
+
+    <section id="categories" aria-label="Browse by category">
+      {categories.map((cat: any, i: number) => (
+        <CategoryRow
+          name={cat.name}
+          slug={cat.slug}
+          games={cat.games}
+          index={i}
+        />
+      ))}
+    </section>
   </main>
   <Footer footerText={footerText} />
 </Base>

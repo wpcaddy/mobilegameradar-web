@@ -1,37 +1,113 @@
 ---
+interface LogoTile {
+  name: string
+  logoUrl: string
+}
+
 interface Props {
   headline: string
   subhead: string
+  logoTiles?: LogoTile[]
+  gameCount?: number
+  categoryCount?: number
 }
-const { headline, subhead } = Astro.props
+
+const { headline, subhead, logoTiles = [], gameCount = 0, categoryCount = 0 } = Astro.props
+
+// Split tiles into two rows for the mosaic
+const mid = Math.ceil(logoTiles.length / 2)
+const row1 = logoTiles.slice(0, mid)
+const row2 = logoTiles.slice(mid)
 ---
 <section class="hero" aria-label="Hero">
-  <div class="container hero__inner">
-    <p class="eyebrow hero__eyebrow">Skill-based cash games — reviewed</p>
-    <h1 class="hero__headline" set:html={headline} />
-    <p class="hero__subhead">{subhead}</p>
-    <div class="hero__actions">
-      <a href="#featured" class="hero__btn-primary">See Top Games</a>
-      <a href="#categories" class="hero__btn-secondary">Browse Categories</a>
+  <div class="hero__layout container">
+    <!-- Left: copy -->
+    <div class="hero__copy">
+      <p class="eyebrow hero__eyebrow">Skill-based cash games — reviewed</p>
+      <h1 class="hero__headline" set:html={headline} />
+      <p class="hero__subhead">{subhead}</p>
+      <div class="hero__actions">
+        <a href="#categories" class="hero__btn-primary">Browse Categories</a>
+        <a href="#categories" class="hero__btn-secondary">All Reviews</a>
+      </div>
     </div>
+
+    <!-- Right: logo mosaic -->
+    {logoTiles.length > 0 && (
+      <div class="hero__mosaic" aria-hidden="true">
+        <div class="mosaic__row mosaic__row--1">
+          {[...row1, ...row1].map((t, i) => (
+            <div class="mosaic__tile" style={`opacity: ${0.45 + (i % 5) * 0.11}`}>
+              <img src={t.logoUrl} alt={t.name} width="64" height="64" loading="eager" />
+            </div>
+          ))}
+        </div>
+        <div class="mosaic__row mosaic__row--2">
+          {[...row2, ...row2].map((t, i) => (
+            <div class="mosaic__tile" style={`opacity: ${0.45 + (i % 5) * 0.11}`}>
+              <img src={t.logoUrl} alt={t.name} width="64" height="64" loading="eager" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
-  <div class="hero__decoration" aria-hidden="true">
-    <div class="hero__blob"></div>
-  </div>
+
+  <!-- Stats strip -->
+  {(gameCount > 0 || categoryCount > 0) && (
+    <div class="hero__stats">
+      <div class="container hero__stats-inner">
+        <div class="stat">
+          <span class="stat__value">{gameCount}</span>
+          <span class="stat__label">Games reviewed</span>
+        </div>
+        <div class="stat__divider" aria-hidden="true">·</div>
+        <div class="stat">
+          <span class="stat__value">{categoryCount}</span>
+          <span class="stat__label">Categories</span>
+        </div>
+        <div class="stat__divider" aria-hidden="true">·</div>
+        <div class="stat">
+          <span class="stat__value">Weekly</span>
+          <span class="stat__label">Updated</span>
+        </div>
+      </div>
+    </div>
+  )}
 </section>
 
 <style>
   .hero {
     position: relative;
     overflow: hidden;
-    padding-block: clamp(4rem, 12vw, 9rem);
     border-bottom: 1px solid var(--border);
   }
 
-  .hero__inner {
+  .hero__layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding-block: clamp(4rem, 10vw, 7rem);
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    .hero__layout {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero__layout {
+      grid-template-columns: 55% 45%;
+    }
+  }
+
+  /* ── Copy ── */
+  .hero__copy {
     position: relative;
     z-index: 1;
-    max-width: 760px;
   }
 
   .hero__eyebrow {
@@ -40,15 +116,14 @@ const { headline, subhead } = Astro.props
 
   .hero__headline {
     font-family: var(--font-display);
-    font-size: clamp(2.25rem, 6vw, 4rem);
+    font-size: clamp(2.25rem, 5.5vw, 3.75rem);
     font-weight: 300;
-    line-height: 1.1;
+    line-height: 1.08;
     letter-spacing: -0.03em;
     color: var(--ink);
     margin-bottom: 1.25rem;
   }
 
-  /* Allow italic spans in the headline via set:html */
   .hero__headline :global(em) {
     font-style: italic;
     color: var(--accent);
@@ -57,7 +132,7 @@ const { headline, subhead } = Astro.props
   .hero__subhead {
     font-size: clamp(1rem, 2.5vw, 1.1875rem);
     color: var(--ink-secondary);
-    max-width: 520px;
+    max-width: 480px;
     line-height: 1.65;
     margin-bottom: 2.5rem;
   }
@@ -99,25 +174,100 @@ const { headline, subhead } = Astro.props
     border-color: transparent;
   }
 
-  /* Decorative blob */
-  .hero__decoration {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
+  /* ── Mosaic ── */
+  .hero__mosaic {
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
   }
 
-  .hero__blob {
-    position: absolute;
-    right: -10%;
-    top: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(ellipse at center, var(--accent-light) 0%, transparent 70%);
-    opacity: 0.5;
-    border-radius: 50%;
+  @media (min-width: 768px) {
+    .hero__mosaic { display: flex; }
   }
 
-  @media (max-width: 640px) {
-    .hero__blob { display: none; }
+  .mosaic__row {
+    display: flex;
+    gap: 0.75rem;
+    animation: marquee-left 30s linear infinite;
+    width: max-content;
+  }
+
+  .mosaic__row--2 {
+    animation-name: marquee-right;
+    animation-duration: 36s;
+  }
+
+  @keyframes marquee-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes marquee-right {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+
+  .mosaic__tile {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: opacity 0.2s ease;
+  }
+
+  .mosaic__tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Stats strip ── */
+  .hero__stats {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding-block: 1rem;
+  }
+
+  .hero__stats-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .stat__value {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .stat__label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat__divider {
+    color: var(--border-hover);
+    font-size: 1.25rem;
+    line-height: 1;
+    user-select: none;
   }
 </style>
