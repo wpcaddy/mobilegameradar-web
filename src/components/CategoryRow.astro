@@ -37,7 +37,9 @@ if (games.length === 0) return
         const rating = game.rating ? game.rating.toFixed(1) : null
         return (
           <li class="cat-card">
-            <a href={`/games/${game.slug.current}`} class="cat-card__inner" aria-label={`${game.name} — ${rating ? rating + '/10' : 'unrated'}`}>
+            <div class="cat-card__inner">
+              {/* Stretch link covers the whole card except the Play button */}
+              <a href={`/games/${game.slug.current}`} class="cat-card__cover-link" aria-label={`Read ${game.name} review`} tabindex="-1" aria-hidden="true" />
               <div class="cat-card__logo-wrap">
                 {game.logoUrl
                   ? <img class="cat-card__logo" src={game.logoUrl} alt={`${game.name} logo`} loading="lazy" width="56" height="56" />
@@ -45,12 +47,14 @@ if (games.length === 0) return
                 }
               </div>
               <div class="cat-card__body">
-                <p class="cat-card__name">{game.name}</p>
+                <p class="cat-card__name">
+                  <a href={`/games/${game.slug.current}`} class="cat-card__name-link">{game.name}</a>
+                </p>
                 {game.tagline && <p class="cat-card__tagline">{game.tagline}</p>}
               </div>
               <div class="cat-card__footer">
                 {rating && (
-                  <div class="cat-card__rating" aria-hidden="true">
+                  <div class="cat-card__rating">
                     <span class="cat-card__rating-value">{rating}</span>
                     <span class="cat-card__rating-label">/10</span>
                   </div>
@@ -61,12 +65,11 @@ if (games.length === 0) return
                   rel="sponsored noopener"
                   class="cat-card__cta"
                   aria-label={`Play ${game.name}`}
-                  onclick="event.stopPropagation()"
                 >
                   Play
                 </a>
               </div>
-            </a>
+            </div>
           </li>
         )
       })}
@@ -155,8 +158,10 @@ if (games.length === 0) return
 
   .cat-row__track {
     display: flex;
+    flex-wrap: nowrap;
     gap: 1rem;
     width: max-content;
+    align-items: flex-start;
   }
 
   /* Individual compact card */
@@ -166,6 +171,7 @@ if (games.length === 0) return
   }
 
   .cat-card__inner {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -173,16 +179,38 @@ if (games.length === 0) return
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1rem;
-    height: 100%;
     box-shadow: var(--shadow-card);
     transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-    text-decoration: none;
   }
 
   .cat-card__inner:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-3px);
     border-color: var(--border-hover);
+  }
+
+  /* Invisible overlay link makes the whole card clickable without nesting <a> tags */
+  .cat-card__cover-link {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    z-index: 0;
+  }
+
+  .cat-card__logo-wrap,
+  .cat-card__body,
+  .cat-card__footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cat-card__name-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cat-card__name-link:hover {
+    color: var(--accent);
   }
 
   .cat-card__logo-wrap {
